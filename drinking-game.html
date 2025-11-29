@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Party Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(22, 22, 40, 0.9);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 255, 157, 0.1);
+            border: 2px solid rgba(0, 255, 157, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00ff9d 0%, #00b8ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #00ff9d;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid rgba(0, 255, 157, 0.3);
+            background: rgba(15, 15, 30, 0.8);
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #00ff9d;
+            box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border-radius: 20px;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff9d 0%, #00b8ff 100%);
+            color: #0f0f1e;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 157, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .players-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            min-height: 50px;
+        }
+
+        .player-tag {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, rgba(0, 255, 157, 0.2) 0%, rgba(0, 184, 255, 0.2) 100%);
+            border: 2px solid rgba(0, 255, 157, 0.5);
+            border-radius: 25px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .player-tag .remove {
+            cursor: pointer;
+            color: #ff4757;
+            font-weight: bold;
+            font-size: 1.2rem;
+            line-height: 1;
+            transition: transform 0.2s;
+        }
+
+        .player-tag .remove:hover {
+            transform: scale(1.3);
+        }
+
+        .difficulty-buttons {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .difficulty-btn {
+            padding: 20px;
+            border-radius: 20px;
+            border: 3px solid;
+            background: rgba(15, 15, 30, 0.6);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .difficulty-btn h3 {
+            margin-bottom: 5px;
+            font-size: 1.3rem;
+        }
+
+        .difficulty-btn p {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        .difficulty-btn.soft {
+            border-color: #00ff9d;
+        }
+
+        .difficulty-btn.soft:hover {
+            background: rgba(0, 255, 157, 0.1);
+            transform: translateX(5px);
+        }
+
+        .difficulty-btn.normal {
+            border-color: #00b8ff;
+        }
+
+        .difficulty-btn.normal:hover {
+            background: rgba(0, 184, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .difficulty-btn.hardcore {
+            border-color: #ff4757;
+        }
+
+        .difficulty-btn.hardcore:hover {
+            background: rgba(255, 71, 87, 0.1);
+            transform: translateX(5px);
+        }
+
+        .challenge-card {
+            background: linear-gradient(135deg, rgba(0, 255, 157, 0.1) 0%, rgba(0, 184, 255, 0.1) 100%);
+            border: 2px solid rgba(0, 255, 157, 0.3);
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .selected-player {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00ff9d 0%, #00b8ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .challenge-text {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            margin-top: 15px;
+            color: #fff;
+        }
+
+        .history {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(15, 15, 30, 0.5);
+            border-radius: 20px;
+        }
+
+        .history-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border-left: 4px solid #00ff9d;
+        }
+
+        .history-item .player-name {
+            font-weight: 700;
+            color: #00ff9d;
+        }
+
+        .history-item .challenge {
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .error {
+            color: #ff4757;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 157, 0.3);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 157, 0.5);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+                border-radius: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .challenge-text {
+                font-size: 1.1rem;
+            }
+
+            .selected-player {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍺 Party Game</h1>
+        <p class="subtitle">Le jeu d'alcool ultime entre potes</p>
+
+        <div id="setupScreen" class="screen active">
+            <div class="input-group">
+                <label>Ajouter un joueur</label>
+                <input type="text" id="playerInput" placeholder="Prénom du joueur..." maxlength="20">
+                <div class="error" id="playerError"></div>
+            </div>
+
+            <div class="players-list" id="playersList"></div>
+
+            <button class="btn btn-primary" onclick="startGame()">Commencer la partie</button>
+        </div>
+
+        <div id="difficultyScreen" class="screen">
+            <h2 style="margin-bottom: 20px; text-align: center;">Choisis ta difficulté</h2>
+
+            <div class="difficulty-buttons">
+                <div class="difficulty-btn soft" onclick="selectDifficulty('soft')">
+                    <h3>😌 SOFT</h3>
+                    <p>Ambiance chill, défis sociaux et rigolos</p>
+                </div>
+
+                <div class="difficulty-btn normal" onclick="selectDifficulty('normal')">
+                    <h3>🔥 NORMAL</h3>
+                    <p>Vrai jeu de soirée, ça commence à chauffer</p>
+                </div>
+
+                <div class="difficulty-btn hardcore" onclick="selectDifficulty('hardcore')">
+                    <h3>💀 HARDCORE</h3>
+                    <p>Mode fêtard extrême, pas pour les faibles</p>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" onclick="showScreen('setupScreen')">Retour</button>
+        </div>
+
+        <div id="gameScreen" class="screen">
+            <div class="challenge-card">
+                <div class="selected-player" id="selectedPlayer"></div>
+                <div class="challenge-text" id="challengeText"></div>
+            </div>
+
+            <button class="btn btn-primary" onclick="nextRound()">Tour suivant</button>
+            <button class="btn btn-secondary" onclick="showScreen('difficultyScreen')">Changer difficulté</button>
+
+            <div class="history" id="history"></div>
+        </div>
+    </div>
+
+    <script>
+        let players = [];
+        let currentDifficulty = 'normal';
+        let history = [];
+
+        const challenges = {
+            soft: [
+                "Complimente chaque joueur de manière sincère ou bois 2 gorgées",
+                "Raconte ton pire date ou bois 3 gorgées",
+                "Imite un joueur au choix pendant 1 minute ou bois 2 gorgées",
+                "Dis quelque chose que personne ne sait sur toi ou bois 2 gorgées",
+                "Chante le refrain de ta chanson préférée ou bois 3 gorgées",
+                "Fais un compliment au joueur à ta gauche ou buvez 2 gorgées tous les deux",
+                "Raconte ta meilleure blague ou bois 2 gorgées",
+                "Donne 3 gorgées à distribuer comme tu veux",
+                "Dis ton crush secret ou bois 4 gorgées",
+                "Montre la photo la plus gênante de ton téléphone ou bois 3 gorgées",
+                "Appelle un de tes contacts au hasard et dis 'Je t'aime' ou bois 4 gorgées",
+                "Invente un surnom pour chaque joueur ou bois 3 gorgées",
+                "Fais ton meilleur accent étranger pendant 30 secondes ou bois 2 gorgées",
+                "Révèle ton dernier mensonge ou bois 3 gorgées",
+                "Fais 10 pompes ou bois 5 gorgées"
+            ],
+            normal: [
+                "Envoie un message vocal à ton ex en disant que tu penses à lui/elle ou bois 5 gorgées",
+                "Fais un shot avec un joueur de ton choix",
+                "Joue au chifoumi, le perdant boit 4 gorgées avec le joueur de ton choix",
+                "Raconte ton expérience la plus gênante en soirée ou bois 4 gorgées",
+                "Fais tourner la bouteille, celui sur qui elle tombe boit 3 gorgées avec toi",
+                "Distribue 5 gorgées à la personne la plus sobre selon toi",
+                "Avoue ton pire défaut ou bois 4 gorgées",
+                "Donne ton téléphone à un joueur qui peut envoyer 1 message à qui il veut ou bois 6 gorgées",
+                "Les joueurs votent : qui est le plus chaud de la soirée ? Le gagnant distribue 4 gorgées",
+                "Bois une gorgée pour chaque personne avec qui tu as déjà couché",
+                "Décris ta position préférée ou bois 5 gorgées",
+                "Embrasse un joueur sur la joue ou buvez 3 gorgées chacun",
+                "Raconte ta pire cuite ou bois 4 gorgées",
+                "Tout le monde boit sauf toi si tu dis un secret jamais révélé, sinon tu bois 6 gorgées",
+                "Fais un battle de danse avec un joueur, le perdant boit 4 gorgées",
+                "Appelle quelqu'un et déclare ta flamme ou bois 6 gorgées",
+                "Lis ton dernier message privé à voix haute ou bois 5 gorgées",
+                "Montre ton historique de recherche récent ou bois 6 gorgées",
+                "Termine ton verre d'une traite",
+                "Fais un shot à l'envers (tête en bas) ou bois 5 gorgées"
+            ],
+            hardcore: [
+                "Enlève un vêtement ou bois 7 gorgées",
+                "Embrasse le joueur de ton choix ou buvez 5 gorgées chacun",
+                "Raconte ton fantasme le plus fou ou bois 6 gorgées",
+                "Fais un body shot sur le joueur de ton choix",
+                "Action ou vérité extrême : les joueurs te posent LA question ou te donnent LE défi",
+                "Envoie 'On se voit quand ?' à ton crush ou bois 7 gorgées",
+                "Lèche le cou du joueur à ta droite ou buvez 5 gorgées chacun",
+                "Raconte avec qui tu veux coucher dans ce groupe ou bois 8 gorgées",
+                "Lance un défi osé à un joueur de ton choix, s'il refuse vous buvez 6 gorgées chacun",
+                "Montre ton dernier nude reçu ou envoyé (flouté si tu veux) ou bois 8 gorgées",
+                "Mets-toi en sous-vêtements pour le reste de la partie ou bois 10 gorgées",
+                "Fais un lap dance de 30 secondes à un joueur ou buvez 6 gorgées chacun",
+                "Les autres joueurs votent : qui pourrait-tu embrasser ce soir ? Tu dois le faire ou boire 8 gorgées",
+                "Prends 2 shots cul sec ou retire 2 vêtements",
+                "Appelle ton crush et dis-lui qu'il/elle te manque ou bois 8 gorgées",
+                "Bois dans le verre d'un autre joueur pendant 10 secondes",
+                "Fais un body shot mais c'est un autre joueur qui choisit où sur toi",
+                "Termine le verre du joueur le plus bourré",
+                "Tout le monde t'obéit pour le prochain tour ou bois 10 gorgées",
+                "Battle de pompes avec un joueur, le perdant finit son verre"
+            ]
+        };
+
+        document.getElementById('playerInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addPlayer();
+            }
+        });
+
+        function addPlayer() {
+            const input = document.getElementById('playerInput');
+            const error = document.getElementById('playerError');
+            const name = input.value.trim();
+
+            error.textContent = '';
+
+            if (!name) {
+                error.textContent = 'Entre un prénom';
+                return;
+            }
+
+            if (players.length >= 6) {
+                error.textContent = 'Maximum 6 joueurs';
+                return;
+            }
+
+            if (players.includes(name)) {
+                error.textContent = 'Ce joueur existe déjà';
+                return;
+            }
+
+            players.push(name);
+            input.value = '';
+            renderPlayers();
+        }
+
+        function renderPlayers() {
+            const container = document.getElementById('playersList');
+            container.innerHTML = players.map((player, index) => `
+                <div class="player-tag">
+                    <span>${player}</span>
+                    <span class="remove" onclick="removePlayer(${index})">×</span>
+                </div>
+            `).join('');
+        }
+
+        function removePlayer(index) {
+            players.splice(index, 1);
+            renderPlayers();
+        }
+
+        function startGame() {
+            const error = document.getElementById('playerError');
+            error.textContent = '';
+
+            if (players.length < 3) {
+                error.textContent = 'Minimum 3 joueurs pour commencer';
+                return;
+            }
+
+            showScreen('difficultyScreen');
+        }
+
+        function selectDifficulty(difficulty) {
+            currentDifficulty = difficulty;
+            showScreen('gameScreen');
+            nextRound();
+        }
+
+        function nextRound() {
+            const player = players[Math.floor(Math.random() * players.length)];
+            const challengesList = challenges[currentDifficulty];
+            const challenge = challengesList[Math.floor(Math.random() * challengesList.length)];
+
+            document.getElementById('selectedPlayer').textContent = player;
+            document.getElementById('challengeText').textContent = challenge;
+
+            addToHistory(player, challenge);
+        }
+
+        function addToHistory(player, challenge) {
+            history.unshift({ player, challenge });
+
+            if (history.length > 20) {
+                history = history.slice(0, 20);
+            }
+
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('history');
+
+            if (history.length === 0) {
+                container.innerHTML = '<p style="text-align: center; opacity: 0.5;">L\'historique apparaîtra ici</p>';
+                return;
+            }
+
+            container.innerHTML = history.map(item => `
+                <div class="history-item">
+                    <div class="player-name">${item.player}</div>
+                    <div class="challenge">${item.challenge}</div>
+                </div>
+            `).join('');
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        renderHistory();
+    </script>
+</body>
+</html>
