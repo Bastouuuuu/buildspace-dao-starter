@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAO Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: rgba(22, 22, 40, 0.6);
+            border-radius: 20px;
+            border: 2px solid rgba(0, 255, 157, 0.2);
+        }
+
+        h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #00ff9d 0%, #00b8ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(22, 22, 40, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid rgba(0, 255, 157, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 255, 157, 0.5);
+            box-shadow: 0 10px 30px rgba(0, 255, 157, 0.2);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00ff9d 0%, #00b8ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+
+        .stat-change {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stat-change.positive {
+            color: #00ff9d;
+        }
+
+        .stat-change.negative {
+            color: #ff4757;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .chart-card {
+            background: rgba(22, 22, 40, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid rgba(0, 255, 157, 0.2);
+        }
+
+        .chart-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #00ff9d;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .members-list {
+            background: rgba(22, 22, 40, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid rgba(0, 255, 157, 0.2);
+        }
+
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+
+        .member-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .member-item:nth-child(1) { border-color: #FFD700; }
+        .member-item:nth-child(2) { border-color: #C0C0C0; }
+        .member-item:nth-child(3) { border-color: #CD7F32; }
+        .member-item:nth-child(n+4) { border-color: #00ff9d; }
+
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .member-rank {
+            font-size: 1.5rem;
+            font-weight: 700;
+            width: 40px;
+            text-align: center;
+        }
+
+        .member-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .member-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .member-address {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .member-tokens {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #00ff9d;
+        }
+
+        .proposals-section {
+            background: rgba(22, 22, 40, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid rgba(0, 255, 157, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .proposal-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+        }
+
+        .proposal-item.active { border-color: #00ff9d; }
+        .proposal-item.passed { border-color: #00b8ff; }
+        .proposal-item.rejected { border-color: #ff4757; }
+
+        .proposal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .proposal-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .proposal-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .proposal-status.active {
+            background: rgba(0, 255, 157, 0.2);
+            color: #00ff9d;
+        }
+
+        .proposal-status.passed {
+            background: rgba(0, 184, 255, 0.2);
+            color: #00b8ff;
+        }
+
+        .proposal-status.rejected {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+        }
+
+        .proposal-description {
+            color: #ccc;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .vote-bar {
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .vote-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff9d 0%, #00b8ff 100%);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: width 1s ease;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff9d 0%, #00b8ff 100%);
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0, 255, 157, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.1) rotate(180deg);
+            box-shadow: 0 15px 40px rgba(0, 255, 157, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+
+            .member-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 DAO Dashboard</h1>
+        <p class="subtitle">Tableau de bord analytique en temps réel</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Membres Total</div>
+            <div class="stat-value" id="totalMembers">0</div>
+            <div class="stat-change positive">
+                <span>↗</span>
+                <span>+12% ce mois</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Tokens Circulants</div>
+            <div class="stat-value" id="totalTokens">0</div>
+            <div class="stat-change positive">
+                <span>↗</span>
+                <span>+8.5% cette semaine</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Propositions Actives</div>
+            <div class="stat-value" id="activeProposals">0</div>
+            <div class="stat-change positive">
+                <span>↗</span>
+                <span>3 nouvelles</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Taux de Participation</div>
+            <div class="stat-value" id="participationRate">0%</div>
+            <div class="stat-change positive">
+                <span>↗</span>
+                <span>+5.2% vs dernier mois</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-card">
+            <div class="chart-title">📈 Évolution des Membres</div>
+            <div class="chart-container">
+                <canvas id="membersChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-title">🪙 Distribution des Tokens</div>
+            <div class="chart-container">
+                <canvas id="tokensChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-title">🗳️ Résultats des Votes</div>
+            <div class="chart-container">
+                <canvas id="votesChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-title">📊 Activité Mensuelle</div>
+            <div class="chart-container">
+                <canvas id="activityChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card full-width">
+            <div class="chart-title">💰 Répartition des Tokens par Membre</div>
+            <div class="chart-container" style="height: 400px;">
+                <canvas id="distributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="proposals-section">
+        <div class="chart-title">🎯 Propositions Récentes</div>
+        <div id="proposalsList"></div>
+    </div>
+
+    <div class="members-list">
+        <div class="chart-title">👥 Top Membres</div>
+        <div id="membersList"></div>
+    </div>
+
+    <button class="refresh-btn" onclick="refreshData()" title="Rafraîchir les données">
+        🔄
+    </button>
+
+    <script>
+        // Configuration des graphiques
+        Chart.defaults.color = '#fff';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+        Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+
+        // Données simulées
+        let daoData = {
+            members: [
+                { rank: 1, name: 'Vitalik.eth', address: '0x1234...5678', tokens: 15000 },
+                { rank: 2, name: 'Satoshi.dao', address: '0x8765...4321', tokens: 12500 },
+                { rank: 3, name: 'CryptoKing', address: '0xabcd...efgh', tokens: 10000 },
+                { rank: 4, name: 'DeFiQueen', address: '0x9876...1234', tokens: 8500 },
+                { rank: 5, name: 'BlockchainBob', address: '0x5555...6666', tokens: 7200 },
+                { rank: 6, name: 'Web3Wizard', address: '0x7777...8888', tokens: 6500 },
+                { rank: 7, name: 'TokenMaster', address: '0x3333...4444', tokens: 5800 },
+                { rank: 8, name: 'DAOenthusiast', address: '0x2222...3333', tokens: 4900 },
+            ],
+            proposals: [
+                {
+                    title: 'Augmenter le budget marketing',
+                    description: 'Proposition pour allouer 50,000 tokens au marketing pour Q1 2025',
+                    status: 'active',
+                    votesFor: 75,
+                    votesAgainst: 25
+                },
+                {
+                    title: 'Nouveau partenariat avec Protocol X',
+                    description: 'Établir un partenariat stratégique avec Protocol X pour développer l\'écosystème',
+                    status: 'active',
+                    votesFor: 82,
+                    votesAgainst: 18
+                },
+                {
+                    title: 'Modification des frais de gouvernance',
+                    description: 'Réduire les frais de soumission de propositions de 100 à 50 tokens',
+                    status: 'passed',
+                    votesFor: 91,
+                    votesAgainst: 9
+                },
+                {
+                    title: 'Développement d\'une nouvelle feature',
+                    description: 'Investir dans le développement d\'un marketplace NFT intégré',
+                    status: 'active',
+                    votesFor: 68,
+                    votesAgainst: 32
+                },
+                {
+                    title: 'Airdrop pour early adopters',
+                    description: 'Distribuer 10,000 tokens aux 100 premiers membres de la DAO',
+                    status: 'passed',
+                    votesFor: 88,
+                    votesAgainst: 12
+                }
+            ],
+            membershipGrowth: [45, 52, 68, 85, 102, 128, 156, 189, 224, 267, 312, 358],
+            monthlyActivity: [120, 145, 180, 210, 195, 240, 280, 310, 295, 340, 380, 425],
+            tokenDistribution: {
+                treasury: 30,
+                topHolders: 25,
+                communityPool: 20,
+                team: 15,
+                circulation: 10
+            }
+        };
+
+        // Mise à jour des statistiques
+        function updateStats() {
+            const totalMembers = daoData.members.reduce((sum, m) => sum + 1, 0);
+            const totalTokens = daoData.members.reduce((sum, m) => sum + m.tokens, 0);
+            const activeProposals = daoData.proposals.filter(p => p.status === 'active').length;
+
+            document.getElementById('totalMembers').textContent = totalMembers;
+            document.getElementById('totalTokens').textContent = totalTokens.toLocaleString();
+            document.getElementById('activeProposals').textContent = activeProposals;
+            document.getElementById('participationRate').textContent = '78%';
+
+            animateValue('totalMembers', 0, totalMembers, 1000);
+            animateValue('totalTokens', 0, totalTokens, 1000);
+            animateValue('activeProposals', 0, activeProposals, 800);
+        }
+
+        function animateValue(id, start, end, duration) {
+            const element = document.getElementById(id);
+            const range = end - start;
+            const increment = range / (duration / 16);
+            let current = start;
+
+            const timer = setInterval(() => {
+                current += increment;
+                if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                    current = end;
+                    clearInterval(timer);
+                }
+
+                if (id === 'totalTokens') {
+                    element.textContent = Math.floor(current).toLocaleString();
+                } else if (id === 'participationRate') {
+                    element.textContent = Math.floor(current) + '%';
+                } else {
+                    element.textContent = Math.floor(current);
+                }
+            }, 16);
+        }
+
+        // Graphique évolution des membres
+        const membersCtx = document.getElementById('membersChart').getContext('2d');
+        const membersChart = new Chart(membersCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+                datasets: [{
+                    label: 'Membres',
+                    data: daoData.membershipGrowth,
+                    borderColor: '#00ff9d',
+                    backgroundColor: 'rgba(0, 255, 157, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#00ff9d',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Graphique distribution des tokens
+        const tokensCtx = document.getElementById('tokensChart').getContext('2d');
+        const tokensChart = new Chart(tokensCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Treasury', 'Top Holders', 'Community Pool', 'Team', 'Circulation'],
+                datasets: [{
+                    data: Object.values(daoData.tokenDistribution),
+                    backgroundColor: [
+                        '#00ff9d',
+                        '#00b8ff',
+                        '#7700ee',
+                        '#ff4757',
+                        '#ffa502'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#16162a'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Graphique résultats des votes
+        const votesCtx = document.getElementById('votesChart').getContext('2d');
+        const votesData = daoData.proposals.slice(0, 5).map(p => ({
+            title: p.title.substring(0, 20) + '...',
+            for: p.votesFor,
+            against: p.votesAgainst
+        }));
+
+        const votesChart = new Chart(votesCtx, {
+            type: 'bar',
+            data: {
+                labels: votesData.map(v => v.title),
+                datasets: [
+                    {
+                        label: 'Pour',
+                        data: votesData.map(v => v.for),
+                        backgroundColor: '#00ff9d'
+                    },
+                    {
+                        label: 'Contre',
+                        data: votesData.map(v => v.against),
+                        backgroundColor: '#ff4757'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: false,
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        stacked: false,
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Graphique activité mensuelle
+        const activityCtx = document.getElementById('activityChart').getContext('2d');
+        const activityChart = new Chart(activityCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+                datasets: [{
+                    label: 'Actions',
+                    data: daoData.monthlyActivity,
+                    backgroundColor: 'rgba(0, 184, 255, 0.6)',
+                    borderColor: '#00b8ff',
+                    borderWidth: 2,
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Graphique distribution détaillée
+        const distributionCtx = document.getElementById('distributionChart').getContext('2d');
+        const distributionChart = new Chart(distributionCtx, {
+            type: 'bar',
+            data: {
+                labels: daoData.members.map(m => m.name),
+                datasets: [{
+                    label: 'Tokens',
+                    data: daoData.members.map(m => m.tokens),
+                    backgroundColor: daoData.members.map((m, i) => {
+                        if (i === 0) return '#FFD700';
+                        if (i === 1) return '#C0C0C0';
+                        if (i === 2) return '#CD7F32';
+                        return 'rgba(0, 255, 157, 0.6)';
+                    }),
+                    borderColor: daoData.members.map((m, i) => {
+                        if (i === 0) return '#FFD700';
+                        if (i === 1) return '#C0C0C0';
+                        if (i === 2) return '#CD7F32';
+                        return '#00ff9d';
+                    }),
+                    borderWidth: 2,
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Afficher les propositions
+        function renderProposals() {
+            const container = document.getElementById('proposalsList');
+            container.innerHTML = daoData.proposals.map(proposal => `
+                <div class="proposal-item ${proposal.status}">
+                    <div class="proposal-header">
+                        <div class="proposal-title">${proposal.title}</div>
+                        <div class="proposal-status ${proposal.status}">
+                            ${proposal.status === 'active' ? 'En cours' : proposal.status === 'passed' ? 'Approuvée' : 'Rejetée'}
+                        </div>
+                    </div>
+                    <div class="proposal-description">${proposal.description}</div>
+                    <div class="vote-bar">
+                        <div class="vote-bar-fill" style="width: ${proposal.votesFor}%">
+                            ${proposal.votesFor}% Pour
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Afficher les membres
+        function renderMembers() {
+            const container = document.getElementById('membersList');
+            container.innerHTML = daoData.members.map(member => `
+                <div class="member-item">
+                    <div class="member-info">
+                        <div class="member-rank">${member.rank === 1 ? '🥇' : member.rank === 2 ? '🥈' : member.rank === 3 ? '🥉' : `#${member.rank}`}</div>
+                        <div class="member-details">
+                            <div class="member-name">${member.name}</div>
+                            <div class="member-address">${member.address}</div>
+                        </div>
+                    </div>
+                    <div class="member-tokens">${member.tokens.toLocaleString()} tokens</div>
+                </div>
+            `).join('');
+        }
+
+        // Rafraîchir les données
+        function refreshData() {
+            // Simuler une mise à jour des données
+            daoData.membershipGrowth = daoData.membershipGrowth.map(v => v + Math.floor(Math.random() * 10));
+            daoData.monthlyActivity = daoData.monthlyActivity.map(v => v + Math.floor(Math.random() * 20));
+
+            // Mettre à jour les graphiques
+            membersChart.data.datasets[0].data = daoData.membershipGrowth;
+            membersChart.update('active');
+
+            activityChart.data.datasets[0].data = daoData.monthlyActivity;
+            activityChart.update('active');
+
+            // Animation du bouton
+            const btn = document.querySelector('.refresh-btn');
+            btn.style.transform = 'scale(1.2) rotate(360deg)';
+            setTimeout(() => {
+                btn.style.transform = 'scale(1) rotate(0deg)';
+            }, 500);
+
+            updateStats();
+        }
+
+        // Initialisation
+        updateStats();
+        renderProposals();
+        renderMembers();
+
+        // Auto-refresh toutes les 30 secondes
+        setInterval(() => {
+            const randomUpdate = Math.random() > 0.7;
+            if (randomUpdate) {
+                refreshData();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
